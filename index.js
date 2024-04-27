@@ -1,14 +1,15 @@
-
-const express = require('express')
-const cors = require('cors')
-require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { json } = require('express');
+require('dotenv').config();
+
 const app = express()
 const port = process.env.PORT || 5000
 
 // midle ware
 app.use(cors())
-app.use(express.json())
+app.use(json())
 
 // password : 5Hm4mHrLGYsve5NI
 // name :travelmate 
@@ -33,29 +34,64 @@ async function run() {
     await client.connect();
 
     const travelCollection = client.db('travelDB').collection('travel');
-    // const userCollection = client.db('coffeeDB').collection('user');
+    const touristSportCollection = client.db('touristDB').collection('tourist');
 
+// touristSportCollection
+
+app.get('/sport', async (req, res) => {
+  const cursor = touristSportCollection.find();
+  const result = await cursor.toArray();
+  res.send(result);
+})
+app.get('/sport/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) }
+  const result = await touristSportCollection.findOne(query);
+  res.send(result);
+})
+    app.post('/sport', async (req, res) => {
+      const newsport = req.body;
+      console.log(newsport)
+      const result = await touristSportCollection.insertOne(newsport);
+      res.send(result);
+  })
+
+// touristSportCollection
+
+    // travel collection
 
     app.get('/tour', async (req, res) => {
         const cursor = travelCollection.find();
         const result = await cursor.toArray();
         res.send(result);
     })
-    app.get('/tour/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
-      const result = await travelCollection.findOne(query);
-      res.send(result);
-  })
 
+  //   app.get('/tour/:id', async (req, res) => {
+  //     const id =req.params.id
+  //     console.log(typeof id) 
+  //     const query = { _id: new ObjectId(id) }
+  //     const result = await travelCollection.findOne(query);
+  //     res.send(result);
+  // })
+    app.get('/tour/:email', async (req, res) => {
+     console.log(req.params.email)
+     const result = await travelCollection.find({email:req.params.email}).toArray()
+     res.send(result)
+  })
     app.post('/tour', async (req, res) => {
         const newtour = req.body;
         console.log(newtour)
         const result = await travelCollection.insertOne(newtour);
         res.send(result);
     })
+    app.delete('/tour/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await travelCollection.deleteOne(query);
+      res.send(result);
+  })
 
-
+// travel collection 
 
 
 
