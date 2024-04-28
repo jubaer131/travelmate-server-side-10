@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const { json } = require('express');
 require('dotenv').config();
 
 const app = express()
@@ -9,16 +8,20 @@ const port = process.env.PORT || 5000
 
 // midle ware
 app.use(cors())
-app.use(json())
+// app.use(cors({
+//   origin : ['http://localhost:5173/']
+// }))
+app.use(express.json())
 
 // password : 5Hm4mHrLGYsve5NI
 // name :travelmate 
 
 
 
-const uri = "mongodb+srv://travelmate:5Hm4mHrLGYsve5NI@cluster0.8dssgfd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-// const uri = "mongodb+srv://<username>:<password>@cluster0.8dssgfd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
+// const uri = "mongodb+srv://travelmate:5Hm4mHrLGYsve5NI@cluster0.8dssgfd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.8dssgfd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+  console.log(uri)
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -49,41 +52,83 @@ app.get('/sport/:id', async (req, res) => {
   const result = await touristSportCollection.findOne(query);
   res.send(result);
 })
-    app.post('/sport', async (req, res) => {
-      const newsport = req.body;
-      console.log(newsport)
-      const result = await touristSportCollection.insertOne(newsport);
-      res.send(result);
-  })
+   
 
 // touristSportCollection
 
     // travel collection
 
+   
+
     app.get('/tour', async (req, res) => {
         const cursor = travelCollection.find();
         const result = await cursor.toArray();
         res.send(result);
-    })
+    }) 
 
-  //   app.get('/tour/:id', async (req, res) => {
-  //     const id =req.params.id
-  //     console.log(typeof id) 
-  //     const query = { _id: new ObjectId(id) }
-  //     const result = await travelCollection.findOne(query);
-  //     res.send(result);
-  // })
+
     app.get('/tour/:email', async (req, res) => {
-     console.log(req.params.email)
-     const result = await travelCollection.find({email:req.params.email}).toArray()
-     res.send(result)
+      const email = req.params.email;
+      const query = { email: email }; 
+      const cursor = travelCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+   })
+
+   
+ 
+
+app.get('/tourdetail/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log(id)
+  const query = { _id: new ObjectId(id) }
+  const result = await travelCollection.findOne(query);
+  res.send(result);
+})
+
+  
+app.get('/updatetour/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log(id)
+  const query = { _id: new ObjectId(id) }
+  const result = await travelCollection.findOne(query);
+  res.send(result);
+})
+
+  
+app.post('/tour', async (req, res) => {
+  const newtour = req.body;
+  console.log(newtour)
+  const result = await travelCollection.insertOne(newtour);
+  res.send(result);
+})
+
+
+  app.put('/updatetour/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true };
+    const updatesport = req.body;
+    console.log(updatesport)
+    const sport = {
+        $set: {
+            name: updatesport.name,
+            country:updatesport.country,
+            location:updatesport.location,
+            description:updatesport.description,
+            cost:updatesport.cost,
+            traveltime:updatesport.traveltime,
+            visitor:updatesport.visitor,
+            Photo:updatesport.Photo,
+            
+        }
+    }
+
+    const result = await travelCollection.updateOne(filter, sport, options);
+    res.send(result);
   })
-    app.post('/tour', async (req, res) => {
-        const newtour = req.body;
-        console.log(newtour)
-        const result = await travelCollection.insertOne(newtour);
-        res.send(result);
-    })
+
+
     app.delete('/tour/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
